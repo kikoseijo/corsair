@@ -6,11 +6,27 @@
 /*   By: jseijo-p <jseijo-p@student.42malaga.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/13 12:43:47 by jseijo-p          #+#    #+#             */
-/*   Updated: 2022/07/18 08:42:27 by jseijo-p         ###   ########.fr       */
+/*   Updated: 2022/07/18 09:58:16 by jseijo-p         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "corsair.h"
+
+int	ft_isprime(int nb)
+{
+	int	i;
+
+	if (nb < 2)
+		return (0);
+	i = 2;
+	while (i * i <= nb)
+	{
+		if (nb % i == 0)
+			return (0);
+		i++;
+	}
+	return (1);
+}
 
 int	ft_strlen(const char *s)
 {

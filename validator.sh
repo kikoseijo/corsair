@@ -1,5 +1,5 @@
 # alias kcc='gcc -Wall -Wextra -Werror'
-kcc $LDFLAGS $CPPFLAGS corsair.c get_next_line.c libft.c hex.c rsa_from_prime.c base64_decode.c  && ./a.out && rm -rf a.out
+kcc $LDFLAGS $CPPFLAGS corsair.c -lssl -lcrypto && ./a.out && rm -rf a.out
 kcc $LDFLAGS $CPPFLAGS -o certpubkey certpubkey.c -lssl -lcrypto && ./certpubkey && rm -rf certpubkey
 
 ### INSTALL OPENSSL MAC ###
@@ -17,3 +17,7 @@ export CPPFLAGS="-I/System/Volumes/Data/sgoinfre/goinfre/Perso/jseijo-p/homebrew
 gcc $LDFLAGS $CPPFLAGS -ggdb -Wall -Wextra -o rsa_test rsa_test.c -lcrypto
 gcc $LDFLAGS $CPPFLAGS -o certpubkey certpubkey.c -lssl -lcrypto && ./certpubkey
 gcc $LDFLAGS3 $CPPFLAGS3 -o certpubkey certpubkey.c -lssl -lcrypto
+
+# Generar certificados usando OpenSSL
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+  -keyout example.key -out example.crt -subj "/CN=example.com"

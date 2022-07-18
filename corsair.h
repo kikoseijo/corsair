@@ -6,7 +6,7 @@
 /*   By: jseijo-p <jseijo-p@student.42malaga.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/13 12:44:08 by jseijo-p          #+#    #+#             */
-/*   Updated: 2022/07/18 08:57:39 by jseijo-p         ###   ########.fr       */
+/*   Updated: 2022/07/18 16:39:42 by jseijo-p         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,15 @@
 #include <openssl/x509.h>
 #include <openssl/x509err.h>
 
+typedef struct s_model
+{
+	char *in_cert_path;
+	char *prime_e;
+	char *prime_d;
+	char *prime_n;
+
+} t_model;
+
 /*
 ** pub key
 ** MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB
@@ -50,6 +59,7 @@
 // int		ft_strlen(const char *s);
 // char	*get_next_line(int fd);
 // char	*ft_strjoin(char const *s1, char const *s2);
+// int	ft_isprime(int nb)
 
 // int b64_decode(const char *in, unsigned char *out, size_t outlen);
 // char *b64_encode(const unsigned char *in, size_t len);
