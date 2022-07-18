@@ -11,13 +11,13 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 
-int main() {
+int main(void) {
 
-  const char cert_filestr[] = "./key.pub";
-             EVP_PKEY *pkey = NULL;
-  BIO              *certbio = NULL;
-  BIO               *outbio = NULL;
-  X509                *cert = NULL;
+  const char 	cert_filestr[] = "./key.pub";
+  EVP_PKEY 		*pkey = NULL;
+  BIO         *certbio = NULL;
+  BIO         *outbio = NULL;
+  X509        *cert = NULL;
   int ret;
 
   /* ---------------------------------------------------------- *

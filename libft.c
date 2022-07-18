@@ -6,7 +6,7 @@
 /*   By: jseijo-p <jseijo-p@student.42malaga.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/13 12:43:47 by jseijo-p          #+#    #+#             */
-/*   Updated: 2022/07/14 18:14:40 by jseijo-p         ###   ########.fr       */
+/*   Updated: 2022/07/18 08:42:27 by jseijo-p         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,13 +52,13 @@ char	*ft_strjoin(char const *s1, char const *s2)
 
 int gcd(int a, int h)
 {
-    int temp;
-    while(1)
-    {
-        temp = a%h;
-        if(temp==0)
-        return h;
-        a = h;
-        h = temp;
-    }
+	int temp;
+	while(1)
+	{
+		temp = a % h;
+		if(temp == 0)
+			return h;
+		a = h;
+		h = temp;
+	}
 }
