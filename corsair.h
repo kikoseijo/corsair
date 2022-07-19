@@ -6,7 +6,7 @@
 /*   By: jseijo-p <jseijo-p@student.42malaga.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/13 12:44:08 by jseijo-p          #+#    #+#             */
-/*   Updated: 2022/07/18 16:39:42 by jseijo-p         ###   ########.fr       */
+/*   Updated: 2022/07/18 17:48:26 by jseijo-p         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,9 +34,9 @@
 typedef struct s_model
 {
 	char *in_cert_path;
+	char *exponent;
 	char *prime_e;
 	char *prime_d;
-	char *prime_n;
 
 } t_model;
 
