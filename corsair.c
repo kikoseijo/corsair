@@ -6,29 +6,11 @@
 /*   By: jseijo-p <jseijo-p@student.42malaga.com>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/13 10:54:21 by jseijo-p          #+#    #+#             */
-/*   Updated: 2022/07/20 10:22:21 by jseijo-p         ###   ########.fr       */
+/*   Updated: 2022/07/20 12:18:27 by jseijo-p         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "corsair.h"
-
-RSA* key_from_bio(BIO *key_bio, int is_private) {
-
-  EVP_PKEY *pkey = NULL;
-
-  if(is_private)
-    pkey = PEM_read_bio_PrivateKey(key_bio, NULL,NULL, NULL);
-  else
-    pkey = PEM_read_bio_PUBKEY(key_bio, NULL,   NULL, NULL);
-  if(!pkey) {
-      fprintf(stderr, "ERROR: key read from BIO is null\n");
-      exit(1);
-  }
-  BIO_free(key_bio);
-  RSA *rsa = EVP_PKEY_get1_RSA(pkey);
-  EVP_PKEY_free(pkey);
-  return rsa;
-}
 
 static void parser(int argc, char **argv, t_model *model)
 {
@@ -37,7 +19,6 @@ static void parser(int argc, char **argv, t_model *model)
 	i=1;
 	while(i < argc)
 	{
-		// printf("%d:%s\n", i, argv[i]);
 		if (strcmp(argv[i], "-incert") == 0)
 			model->in_cert_path = argv[++i];
 		if (strcmp(argv[i], "-p1") == 0)
@@ -46,9 +27,6 @@ static void parser(int argc, char **argv, t_model *model)
 			model->prime_d = argv[++i];
 		i++;
 	}
-	// printf("in_cert_path:%s\n", model->in_cert_path);
-	// printf("prime_e:%s\n", model->prime_e);
-	// printf("prime_d:%s\n", model->prime_d);
 }
 
 static void free_rsa(BIO	*bp_public, BIO	*bp_private, RSA *rsa)
@@ -58,30 +36,138 @@ static void free_rsa(BIO	*bp_public, BIO	*bp_private, RSA *rsa)
 	RSA_free(rsa);
 }
 
+static void	ft_write_privkey_pkey(t_model *model)
+{
+	RSA		*rsa;
+	BIO		*outbio = NULL;
+	int		ret;
+	BN_CTX	*ctx;
+	BIGNUM	*uno = BN_new();
+	BIGNUM	*e = BN_new();
+	BIGNUM	*p = BN_new();
+	BIGNUM	*q = BN_new();
+	BIGNUM	*d;
+	BIGNUM	*tmp_p;
+	BIGNUM	*tmp_q;
+	BIGNUM	*tmp_m1;
+	BIGNUM	*tmp_m2;
+	BIGNUM	*m;
+	BIGNUM	*n2;
+	BIGNUM	*dmp1;
+	BIGNUM	*dmq1;
+	BIGNUM	*iqmp;
+
+	ctx = BN_CTX_new();
+	rsa = RSA_new();
+	outbio  = BIO_new_fp(stdout, BIO_NOCLOSE);
+
+	BN_dec2bn(&uno, "1");
+	BN_dec2bn(&e, "65537");
+	BN_dec2bn(&p, model->prime_e);
+	BN_dec2bn(&q, model->prime_d);
+
+	BN_CTX_start(ctx);
+	n2 = BN_CTX_get(ctx);
+	BN_mul(n2, p, q, ctx);
+	tmp_m1 = BN_CTX_get(ctx);
+	BN_add(tmp_m1, p, q);
+	tmp_m2 = BN_CTX_get(ctx);
+	BN_sub(tmp_m2, tmp_m1, uno);
+	m = BN_CTX_get(ctx);
+	BN_sub(m, n2, tmp_m2);
+	d = BN_CTX_get(ctx);
+	BN_mod_inverse(d, e, m, ctx);
+	dmp1 = BN_CTX_get(ctx);
+	tmp_p = BN_CTX_get(ctx);
+	BN_sub(tmp_p, p, uno);
+	BN_mod(dmp1, d, tmp_p, ctx);
+	dmq1 = BN_CTX_get(ctx);
+	tmp_q = BN_CTX_get(ctx);
+	BN_sub(tmp_q, q, uno);
+	BN_mod(dmq1, d, tmp_q, ctx);
+	iqmp = BN_CTX_get(ctx);
+	BN_mod_inverse(iqmp, q, p, ctx);
+
+
+	RSA_set0_key(rsa, n2, e, d);
+	RSA_set0_factors(rsa, p, q);
+	RSA_set0_crt_params(rsa, dmp1, dmq1, iqmp);
+
+	printf("\n\n");
+
+	RSA_print(outbio, rsa, 0);
+	ret = PEM_write_bio_RSAPublicKey(outbio, rsa);
+	if(ret != 1)
+	{
+		BIO_printf(outbio, "Error writing public key data in PEM format");
+		return;
+	}
+
+	printf("\n\n");
+
+
+	ret = PEM_write_bio_RSAPrivateKey(outbio, rsa, 0, 0, 0, 0, 0);
+	if(ret != 1)
+	{
+		BIO_printf(outbio, "Error writing private key data in PEM format");
+		return;
+	}
+
+	BIO_free_all(outbio);
+	RSA_free(rsa);
+}
+
+static void write_rsa_keys(RSA *rsa)
+{
+	int				ret = 0;
+	BIO				*bp_public = NULL;
+	BIO				*bp_private = NULL;
+	bp_public = BIO_new_file("res_public.pem", "w+");
+	ret = PEM_write_bio_RSAPublicKey(bp_public, rsa);
+	if(ret != 1){
+		free_rsa(bp_public, bp_private, rsa);
+		return;
+	}
+	bp_private = BIO_new_file("res_private.pem", "w+");
+	ret = PEM_write_bio_RSAPrivateKey(bp_private, rsa, NULL, NULL, 0, NULL, NULL);
+	free_rsa(bp_public, bp_private, rsa);
+}
+
+static void test_rsa(RSA *rsa)
+{
+	BIGNUM *test;
+	test = (BIGNUM *)RSA_get0_e(rsa);
+	printf("\nEXPONENT: %s\n", BN_bn2dec(test));
+	test = (BIGNUM *)RSA_get0_n(rsa);
+	printf("\nMODULUS: %s\n", BN_bn2dec(test));
+}
+
 static void generate_keys(t_model *model)
 {
-		BIO				*bp_public = NULL, *bp_private = NULL;
-		int				ret = 0;
-		RSA *rsa = RSA_new();
-    BIGNUM *exp = BN_new();
-    BN_dec2bn(&exp, model->exponent);
-    BIGNUM *e = BN_new();
-    BN_dec2bn(&e, model->prime_e);
-    BIGNUM *d = BN_new();
-    BN_dec2bn(&d, model->prime_d);
-    RSA_set0_key(rsa, e, exp, d);
-    BIGNUM *test;
-    test = (BIGNUM *)RSA_get0_e(rsa);
-    printf("\n\nEXPONENT:   %s\n", BN_bn2dec(test));
-		bp_public = BIO_new_file("res_public.pem", "w+");
-		ret = PEM_write_bio_RSAPublicKey(bp_public, rsa);
-		if(ret != 1){
-			free_rsa(bp_public, bp_private, rsa);
-			return;
-		}
-		bp_private = BIO_new_file("res_private.pem", "w+");
-		ret = PEM_write_bio_RSAPrivateKey(bp_private, rsa, NULL, NULL, 0, NULL, NULL);
-		free_rsa(bp_public, bp_private, rsa);
+		RSA 			*rsa = RSA_new();
+    BIGNUM 		*exp = BN_new();
+		BIGNUM 		*e = BN_new();
+		BIGNUM 		*d = BN_new();
+		BIGNUM 		*p = BN_new();
+		BIGNUM 		*q = BN_new();
+		BIGNUM 		*one = BN_new();
+		BN_CTX		*ctx = BN_CTX_new();
+
+    BN_dec2bn(&one, "1");
+    BN_dec2bn(&exp, "65537");
+    BN_dec2bn(&p, model->prime_e);
+    BN_dec2bn(&q, model->prime_d);
+
+		BN_CTX_start(ctx);
+		BIGNUM *n2 = BN_CTX_get(ctx);
+		d = BN_CTX_get(ctx);
+		BIGNUM *m = BN_CTX_get(ctx);
+		BN_mod_inverse(d, e, m, ctx);
+
+    RSA_set0_key(rsa, n2, exp, d);
+
+		test_rsa(rsa);
+		write_rsa_keys(rsa);
 }
 
 static void openssl_modulus(t_model *model)
@@ -136,11 +222,10 @@ int main(int argc, char **argv) {
 	parser(argc, argv, model);
 	if(model->in_cert_path)
 		openssl_modulus(model);
+	if(1==2)
+		ft_write_privkey_pkey(model);
 	if(model->prime_e && model->prime_d)
-	{
-		model->exponent = "65537";
 		generate_keys(model);
-	}
 	if(!model->in_cert_path && (!model->prime_e || !model->prime_d))
 		printf("USAGE:\n ./corsair [-incert cert_path] [-p1 prime_e -p2 prime_d]\n");
 	free(model);
